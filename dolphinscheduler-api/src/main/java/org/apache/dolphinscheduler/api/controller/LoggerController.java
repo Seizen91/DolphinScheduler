@@ -167,4 +167,30 @@ public class LoggerController extends BaseController {
                         "attachment; filename=\"" + System.currentTimeMillis() + ".log" + "\"")
                 .body(logBytes);
     }
+
+    /**
+     * query task log by process instance id
+     *
+     * @param loginUser login user
+     * @param processInstanceId process instance id
+     * @param skipNum skip number
+     * @param limit limit
+     * @return task log content
+     */
+    @ApiOperation(value = "queryLogByProcessInstanceId", notes = "QUERY_TASK_INSTANCE_LOG_NOTES")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "processInstanceId", value = "TASK_ID", required = true, dataTypeClass = int.class, example = "100"),
+            @ApiImplicitParam(name = "skipLineNum", value = "SKIP_LINE_NUM", required = true, dataTypeClass = int.class, example = "100"),
+            @ApiImplicitParam(name = "limit", value = "LIMIT", required = true, dataTypeClass = int.class, example = "100")
+    })
+    @GetMapping(value = "/queryLogByProcessInstanceId")
+    @ResponseStatus(HttpStatus.OK)
+    @ApiException(QUERY_TASK_INSTANCE_LOG_ERROR)
+    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
+    public Result<ResponseTaskLog> queryLogByProcessInstanceId(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                                 @RequestParam(value = "processInstanceId") int processInstanceId,
+                                                                 @RequestParam(value = "skipLineNum") int skipNum,
+                                                                 @RequestParam(value = "limit") int limit) {
+        return loggerService.queryLogByProcessInstanceId(processInstanceId, skipNum, limit);
+    }
 }

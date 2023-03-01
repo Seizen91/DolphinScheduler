@@ -17,10 +17,12 @@
 
 package org.apache.dolphinscheduler.api.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.exceptions.ServiceException;
 import org.apache.dolphinscheduler.api.service.LoggerService;
 import org.apache.dolphinscheduler.api.service.ProjectService;
+import org.apache.dolphinscheduler.api.service.TaskInstanceService;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.constants.Constants;
 import org.apache.dolphinscheduler.dao.entity.Project;
@@ -30,6 +32,7 @@ import org.apache.dolphinscheduler.dao.entity.TaskInstance;
 import org.apache.dolphinscheduler.dao.entity.User;
 import org.apache.dolphinscheduler.dao.mapper.ProjectMapper;
 import org.apache.dolphinscheduler.dao.mapper.TaskDefinitionMapper;
+import org.apache.dolphinscheduler.dao.mapper.TaskInstanceMapper;
 import org.apache.dolphinscheduler.remote.utils.Host;
 import org.apache.dolphinscheduler.service.log.LogClient;
 import org.apache.dolphinscheduler.service.process.ProcessService;
@@ -77,6 +80,9 @@ public class LoggerServiceImpl extends BaseServiceImpl implements LoggerService 
 
     @Autowired
     TaskDefinitionMapper taskDefinitionMapper;
+
+    @Autowired
+    private TaskInstanceMapper taskInstanceMapper;
 
     /**
      * view log
@@ -184,6 +190,17 @@ public class LoggerServiceImpl extends BaseServiceImpl implements LoggerService 
             throw new ServiceException("task instance does not exist in project");
         }
         return getLogBytes(task);
+    }
+
+    @Override
+    public Result<ResponseTaskLog> queryLogByProcessInstanceId(int processInstanceId, int skipLineNum, int limit) {
+        LambdaQueryWrapper<TaskInstance> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(TaskInstance::getProcessInstanceId, processInstanceId);
+        TaskInstance instance = taskInstanceMapper.selectOne(wrapper);
+        if(instance != null) {
+            return queryLog(instance.getId(), skipLineNum, limit);
+        }
+        return null;
     }
 
     /**

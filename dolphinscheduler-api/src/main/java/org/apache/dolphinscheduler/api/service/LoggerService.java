@@ -68,4 +68,14 @@ public interface LoggerService {
      * @return log byte array
      */
     byte[] getLogBytes(User loginUser, long projectCode, int taskInstId);
+
+    /**
+     * view log
+     *
+     * @param processInstanceId process instance id
+     * @param skipLineNum skip line number
+     * @param limit limit
+     * @return log string data
+     */
+    Result<ResponseTaskLog> queryLogByProcessInstanceId(int processInstanceId, int skipLineNum, int limit);
 }
