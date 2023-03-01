@@ -54,7 +54,7 @@ import io.swagger.annotations.ApiOperation;
 /**
  * task group controller
  */
-@Api(tags = "task group")
+@Api(tags = "TASK_GROUP_TAG")
 @RestController
 @RequestMapping("/task-group")
 public class TaskGroupController extends BaseController {

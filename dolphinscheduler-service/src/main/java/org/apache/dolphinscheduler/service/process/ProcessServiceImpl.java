@@ -931,11 +931,20 @@ public class ProcessServiceImpl implements ProcessService {
         if (processInstanceId == 0) {
             processInstance = generateNewProcessInstance(processDefinition, command, cmdParam);
         } else {
-            processInstance = this.findProcessInstanceDetailById(processInstanceId).orElse(null);
-            if (processInstance == null) {
-                return null;
+            processInstance = processInstanceMapper.selectById(processInstanceId);
+            if(StringUtils.isEmpty(processInstance.getName())){
+                processInstance = generateNewProcessInstance(processDefinition, command, cmdParam);
+                processInstance.setId(processInstanceId);
+            }else {
+                processInstance = this.findProcessInstanceDetailById(processInstanceId).orElse(null);
+                if (processInstance == null) {
+                    return null;
+                }
             }
         }
+
+
+
         if (cmdParam != null) {
             CommandType commandTypeIfComplement = getCommandTypeIfComplement(processInstance, command);
             // reset global params while repeat running is needed by cmdParam

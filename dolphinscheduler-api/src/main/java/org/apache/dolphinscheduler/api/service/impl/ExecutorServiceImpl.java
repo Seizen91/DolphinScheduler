@@ -94,6 +94,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -216,6 +217,12 @@ public class ExecutorServiceImpl extends BaseServiceImpl implements ExecutorServ
         if (!checkMasterExists(result)) {
             return result;
         }
+
+        // 新增插入工作流实例逻辑，方便工作流运行之后返回processInstanceId
+        ProcessInstance processInstance = new ProcessInstance();
+        processInstance.setProcessDefinitionCode(processDefinition.getCode());
+        processInstanceDao.insertProcessInstance(processInstance);
+        result.put("data", processInstance.getId());
         /**
          * create command
          */
@@ -224,7 +231,7 @@ public class ExecutorServiceImpl extends BaseServiceImpl implements ExecutorServ
                         startNodeList,
                         cronTime, warningType, loginUser.getId(), warningGroupId, runMode, processInstancePriority,
                         workerGroup,
-                        environmentCode, startParams, expectedParallelismNumber, dryRun, complementDependentMode);
+                        environmentCode, startParams, expectedParallelismNumber, dryRun, complementDependentMode, processInstance.getId());
 
         if (create > 0) {
             processDefinition.setWarningGroupId(warningGroupId);
@@ -232,6 +239,7 @@ public class ExecutorServiceImpl extends BaseServiceImpl implements ExecutorServ
             logger.info("Create command complete, processDefinitionCode:{}, commandCount:{}.",
                     processDefinition.getCode(), create);
             putMsg(result, Status.SUCCESS);
+
         } else {
             logger.error("Start process instance failed because create command error, processDefinitionCode:{}.",
                     processDefinition.getCode());
@@ -353,8 +361,8 @@ public class ExecutorServiceImpl extends BaseServiceImpl implements ExecutorServ
 
     /**
      * do action to process instance：pause, stop, repeat, recover from pause, recover from stop，rerun failed task
-    
-    
+
+
      *
      * @param loginUser         login user
      * @param projectCode       project code
@@ -718,7 +726,7 @@ public class ExecutorServiceImpl extends BaseServiceImpl implements ExecutorServ
                               WarningType warningType, int executorId, int warningGroupId, RunMode runMode,
                               Priority processInstancePriority, String workerGroup, Long environmentCode,
                               Map<String, String> startParams, Integer expectedParallelismNumber, int dryRun,
-                              ComplementDependentMode complementDependentMode) {
+                              ComplementDependentMode complementDependentMode, Integer instanceId) {
 
         /**
          * instantiate command schedule instance
@@ -759,7 +767,8 @@ public class ExecutorServiceImpl extends BaseServiceImpl implements ExecutorServ
         if (processDefinition != null) {
             command.setProcessDefinitionVersion(processDefinition.getVersion());
         }
-        command.setProcessInstanceId(0);
+        //command.setProcessInstanceId(0);
+        command.setProcessInstanceId(instanceId);
 
         // determine whether to complement
         if (commandType == CommandType.COMPLEMENT_DATA) {
